@@ -178,21 +178,24 @@ function resetBall() {
 // Update paddle position
 function updatePaddle() {
     const speed = 7;
+    let hasKeyboardInput = false;
 
     // Keyboard controls
     if (keysPressed['ArrowLeft'] || keysPressed['a'] || keysPressed['A']) {
         gameState.paddle.x -= speed;
+        hasKeyboardInput = true;
     }
     if (keysPressed['ArrowRight'] || keysPressed['d'] || keysPressed['D']) {
         gameState.paddle.x += speed;
+        hasKeyboardInput = true;
     }
 
-    // Mouse control: paddle follows cursor X
-    if (gameState.mouseX !== null) {
-        const paddleCenter = gameState.paddle.x + gameState.paddle.width / 2;
-        const cursorOffset = gameState.mouseX - paddleCenter;
-        const smoothing = 0.2;
-        gameState.paddle.x += cursorOffset * smoothing;
+    // Mouse control: paddle follows cursor X (only if no keyboard input)
+    if (!hasKeyboardInput && gameState.mouseX !== null) {
+        const targetX = gameState.mouseX - gameState.paddle.width / 2;
+        const diff = targetX - gameState.paddle.x;
+        const smoothing = 0.12;
+        gameState.paddle.x += diff * smoothing;
     }
 
     // Clamp paddle within bounds
