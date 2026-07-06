@@ -43,17 +43,17 @@ let soundEnabled = true;
 // Initialize blocks with fixed pattern
 function initializeBlocks() {
     gameState.blocks = [];
-    const colors = ['red', 'yellow', 'cyan', 'magenta', 'hotpink', 'green', 'gray'];
+    const colors = ['red', 'yellow', 'cyan', 'magenta', 'hotpink', 'green'];
     const blockWidth = 32;
     const blockHeight = 16;
-    const startX = 50;
+    const startX = 80;
     const startY = 60;
-    const spacingX = 36;
+    const spacingX = 64;
     const spacingY = 20;
 
-    for (let row = 0; row < 5; row++) {
-        for (let col = 0; col < 20; col++) {
-            const colorIndex = row % colors.length;
+    for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 10; col++) {
+            const colorIndex = (row * 10 + col) % colors.length;
             gameState.blocks.push({
                 x: startX + col * spacingX,
                 y: startY + row * spacingY,
@@ -99,7 +99,7 @@ function updateHUD() {
 // Game loop
 function gameLoop() {
     // Clear canvas
-    ctx.fillStyle = '#1a1a2e';
+    ctx.fillStyle = '#333333';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (gameState.mode === 'playing') {
