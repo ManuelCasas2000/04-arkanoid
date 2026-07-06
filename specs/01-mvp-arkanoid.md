@@ -1,5 +1,6 @@
 ---
-state: Draft
+state: Approved
+# state: Draft
 date: 2026-07-06
 dependencies: None
 ---
