@@ -134,27 +134,33 @@ function gameLoop() {
 function updateBall() {
     if (gameState.mode !== 'playing') return;
 
+    const prevX = gameState.ball.x;
+    const prevY = gameState.ball.y;
+
+    // Update position based on velocity
     gameState.ball.x += gameState.ball.vx;
     gameState.ball.y += gameState.ball.vy;
 
-    // Wall bounces
-    if (gameState.ball.x <= 0) {
+    // Left wall bounce - detect boundary crossing
+    if (prevX >= 0 && gameState.ball.x < 0) {
         gameState.ball.x = 0;
-        gameState.ball.vx = -gameState.ball.vx;
+        gameState.ball.vx = Math.abs(gameState.ball.vx);
         playSound('ball-bounce');
     }
-    if (gameState.ball.x + gameState.ball.width >= canvas.width) {
+    // Right wall bounce
+    if (prevX + gameState.ball.width <= canvas.width && gameState.ball.x + gameState.ball.width > canvas.width) {
         gameState.ball.x = canvas.width - gameState.ball.width;
-        gameState.ball.vx = -gameState.ball.vx;
+        gameState.ball.vx = -Math.abs(gameState.ball.vx);
         playSound('ball-bounce');
     }
-    if (gameState.ball.y <= 0) {
+    // Top wall bounce
+    if (prevY >= 0 && gameState.ball.y < 0) {
         gameState.ball.y = 0;
-        gameState.ball.vy = -gameState.ball.vy;
+        gameState.ball.vy = Math.abs(gameState.ball.vy);
         playSound('ball-bounce');
     }
 
-    // Ball fell off bottom
+    // Ball fell off bottom - lose a life
     if (gameState.ball.y > canvas.height) {
         gameState.lives--;
         if (gameState.lives > 0) {
