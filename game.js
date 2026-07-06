@@ -46,9 +46,11 @@ function initializeBlocks() {
     const colors = ['red', 'yellow', 'cyan', 'magenta', 'hotpink', 'green'];
     const blockWidth = 32;
     const blockHeight = 16;
-    const startX = 80;
+    const blocksPerRow = 10;
+    const totalBlocksWidth = blocksPerRow * blockWidth;
+    const startX = (canvas.width - totalBlocksWidth) / 2;
     const startY = 60;
-    const spacingX = 64;
+    const spacingX = blockWidth;
     const spacingY = 20;
 
     for (let row = 0; row < 3; row++) {
