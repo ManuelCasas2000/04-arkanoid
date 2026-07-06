@@ -220,9 +220,19 @@ function updateBlocks() {
 function checkCollisions() {
     // Ball-paddle collision
     if (ballRectCollision(gameState.ball, gameState.paddle)) {
-        gameState.ball.vy = -gameState.ball.vy;
-        gameState.ball.y = gameState.paddle.y - gameState.ball.height;
-        playSound('ball-bounce');
+        // Only bounce if ball is moving downward (vy > 0)
+        if (gameState.ball.vy > 0) {
+            gameState.ball.vy = -gameState.ball.vy;
+            gameState.ball.y = gameState.paddle.y - gameState.ball.height;
+
+            // Add horizontal velocity based on where ball hits paddle
+            const paddleCenter = gameState.paddle.x + gameState.paddle.width / 2;
+            const ballCenter = gameState.ball.x + gameState.ball.width / 2;
+            const hitPos = (ballCenter - paddleCenter) / (gameState.paddle.width / 2);
+            gameState.ball.vx += hitPos * 3;
+
+            playSound('ball-bounce');
+        }
     }
 
     // Ball-block collisions
