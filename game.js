@@ -239,9 +239,24 @@ function checkCollisions() {
     for (let block of gameState.blocks) {
         if (!block.broken && ballRectCollision(gameState.ball, block)) {
             block.broken = true;
-            gameState.ball.vy = -gameState.ball.vy;
             gameState.score += 10;
             playSound('break-sound');
+
+            // Determine which side of the block was hit
+            const overlapLeft = gameState.ball.x + gameState.ball.width - block.x;
+            const overlapRight = block.x + block.width - gameState.ball.x;
+            const overlapTop = gameState.ball.y + gameState.ball.height - block.y;
+            const overlapBottom = block.y + block.height - gameState.ball.y;
+
+            const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+
+            // Bounce based on which side was hit
+            if (minOverlap === overlapTop || minOverlap === overlapBottom) {
+                gameState.ball.vy = -gameState.ball.vy;
+            } else {
+                gameState.ball.vx = -gameState.ball.vx;
+            }
+
             break; // Only collide with one block per frame
         }
     }
