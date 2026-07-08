@@ -517,84 +517,94 @@ function showGameCompleteMenu() {
     escHint.classList.add('hidden');
 }
 
-// Event listeners
-playButton.addEventListener('click', () => {
-    showLevelSelectMenu();
-});
-
-levelButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
-        const levelNumber = parseInt(e.target.getAttribute('data-level'));
-        initializeLevel(levelNumber);
-        gameState.mode = 'playing';
-        showPlayingUI();
+// Setup event listeners
+function setupEventListeners() {
+    playButton.addEventListener('click', () => {
+        showLevelSelectMenu();
     });
-});
 
-retryButton.addEventListener('click', () => {
-    resetGame();
-    showStartMenu();
-});
-
-continueButton.addEventListener('click', () => {
-    if (gameState.currentLevel < 5) {
-        initializeLevel(gameState.currentLevel + 1);
-        gameState.mode = 'playing';
-        hideLevelCompleteMenu();
-        showPlayingUI();
-    } else {
-        // Level 5 complete - show game complete menu
-        gameState.mode = 'game-complete';
-        showGameCompleteMenu();
-    }
-});
-
-menuButton.addEventListener('click', () => {
-    resetGame();
-    showStartMenu();
-});
-
-changeLevelButton.addEventListener('click', () => {
-    gameState.mode = 'level-select';
-    hidePauseMenu();
-    showLevelSelectMenu();
-});
-
-document.addEventListener('keydown', (e) => {
-    keysPressed[e.key] = true;
-
-    // Pause with ESC
-    if (e.key === 'Escape') {
-        if (gameState.mode === 'playing') {
-            gameState.mode = 'paused';
-            soundEnabled = false;
-            showPauseMenu();
-        } else if (gameState.mode === 'paused') {
+    levelButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const levelNumber = parseInt(e.target.getAttribute('data-level'));
+            initializeLevel(levelNumber);
             gameState.mode = 'playing';
-            soundEnabled = true;
-            hidePauseMenu();
+            showPlayingUI();
+        });
+    });
+
+    retryButton.addEventListener('click', () => {
+        resetGame();
+        showStartMenu();
+    });
+
+    continueButton.addEventListener('click', () => {
+        if (gameState.currentLevel < 5) {
+            initializeLevel(gameState.currentLevel + 1);
+            gameState.mode = 'playing';
+            hideLevelCompleteMenu();
+            showPlayingUI();
+        } else {
+            // Level 5 complete - show game complete menu
+            gameState.mode = 'game-complete';
+            showGameCompleteMenu();
         }
-    }
-});
+    });
 
-document.addEventListener('keyup', (e) => {
-    keysPressed[e.key] = false;
-});
+    menuButton.addEventListener('click', () => {
+        resetGame();
+        showStartMenu();
+    });
 
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    gameState.mouseX = e.clientX - rect.left;
-});
+    changeLevelButton.addEventListener('click', () => {
+        gameState.mode = 'level-select';
+        hidePauseMenu();
+        showLevelSelectMenu();
+    });
 
-canvas.addEventListener('mouseleave', () => {
-    gameState.mouseX = null;
-});
+    document.addEventListener('keydown', (e) => {
+        keysPressed[e.key] = true;
+
+        // Pause with ESC
+        if (e.key === 'Escape') {
+            if (gameState.mode === 'playing') {
+                gameState.mode = 'paused';
+                soundEnabled = false;
+                showPauseMenu();
+            } else if (gameState.mode === 'paused') {
+                gameState.mode = 'playing';
+                soundEnabled = true;
+                hidePauseMenu();
+            }
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        keysPressed[e.key] = false;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        gameState.mouseX = e.clientX - rect.left;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        gameState.mouseX = null;
+    });
+}
 
 // Initialize
-window.addEventListener('load', () => {
+function initializeGame() {
+    setupEventListeners();
     loadSpritesheet(() => {
         resetGame();
         showStartMenu();
         gameLoop();
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeGame);
+} else {
+    // DOM is already loaded
+    initializeGame();
+}
