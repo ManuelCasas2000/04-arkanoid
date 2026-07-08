@@ -40,6 +40,9 @@ let gameState = {
 let keysPressed = {};
 let soundEnabled = true;
 
+// Animation constants
+const ANIMATION_DURATION = 400; // milliseconds for block destruction animation (4 frames)
+
 // Initialize blocks with fixed pattern
 function initializeBlocks() {
     gameState.blocks = [];
@@ -62,7 +65,9 @@ function initializeBlocks() {
                 color: colors[colorIndex],
                 width: blockWidth,
                 height: blockHeight,
-                broken: false
+                broken: false,
+                animating: false,
+                animationStartTime: null
             });
         }
     }
@@ -215,7 +220,21 @@ function updatePaddle() {
 
 // Update blocks state
 function updateBlocks() {
-    // Blocks are updated during collision detection
+    const now = Date.now();
+
+    for (let block of gameState.blocks) {
+        if (block.animating) {
+            const elapsed = now - block.animationStartTime;
+
+            // Animation finished when elapsed time >= ANIMATION_DURATION
+            if (elapsed >= ANIMATION_DURATION) {
+                block.animating = false;
+            }
+        }
+    }
+
+    // Remove blocks that have finished animating (broken and not animating)
+    gameState.blocks = gameState.blocks.filter(block => !(block.broken && !block.animating));
 }
 
 // Collision detection
@@ -240,7 +259,12 @@ function checkCollisions() {
     // Ball-block collisions
     for (let block of gameState.blocks) {
         if (!block.broken && ballRectCollision(gameState.ball, block)) {
+            // Mark block as destroyed and start animation
             block.broken = true;
+            block.animating = true;
+            block.animationStartTime = Date.now();
+
+            // Award points immediately when animation starts
             gameState.score += 10;
             playSound('break-sound');
 
@@ -284,8 +308,21 @@ function renderBall() {
 
 // Render blocks
 function renderBlocks() {
+    const now = Date.now();
+
     for (let block of gameState.blocks) {
-        if (!block.broken) {
+        if (block.animating) {
+            // Render explosion animation
+            const elapsed = now - block.animationStartTime;
+            const frameIndex = Math.floor((elapsed / ANIMATION_DURATION) * 4);
+
+            // Get the explosion frame for this color
+            const explosionFrame = EXPLOSION_FRAMES[block.color][frameIndex];
+            if (explosionFrame) {
+                drawFrame(ctx, explosionFrame, block.x, block.y, block.width, block.height);
+            }
+        } else if (!block.broken) {
+            // Render normal block sprite
             drawSprite(ctx, `block_${block.color}`, block.x, block.y, block.width, block.height);
         }
     }
