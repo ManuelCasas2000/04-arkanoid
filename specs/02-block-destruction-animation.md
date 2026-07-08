@@ -1,5 +1,5 @@
 ---
-state: Draft
+state: Implementado
 date: 2026-07-08
 dependencies: 01-mvp-arkanoid.md
 ---
