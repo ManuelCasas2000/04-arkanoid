@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pruebas Arkanoid</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a2e;
+            color: #00d4ff;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+        }
+        .test-container {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #00d4ff;
+        }
+        .test-pass {
+            color: #00ff00;
+            border-left-color: #00ff00;
+        }
+        .test-fail {
+            color: #ff4444;
+            border-left-color: #ff4444;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 5px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .all-pass {
+            color: #00ff00;
+        }
+        .has-fail {
+            color: #ff4444;
+        }
+        button {
+            padding: 10px 20px;
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <h1>ARKANOID - PRUEBAS END-TO-END</h1>
+
+    <div>
+        <button onclick="runAllTests()">Ejecutar Todas las Pruebas</button>
+        <button onclick="testInteractive()">Prueba Interactiva (Nivel 1)</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script src="assets/spritesheet.js"></script>
+    <script src="game.js"></script>
+    <script>
+        const resultsDiv = document.getElementById('results');
+        let testsPassed = 0;
+        let testsFailed = 0;
+
+        function logTest(name, passed, error = null) {
+            const div = document.createElement('div');
+            div.className = `test-container ${passed ? 'test-pass' : 'test-fail'}`;
+
+            if (passed) {
+                div.textContent = `✓ ${name}`;
+                testsPassed++;
+            } else {
+                div.textContent = `✗ ${name}: ${error}`;
+                testsFailed++;
+            }
+
+            resultsDiv.appendChild(div);
+        }
+
+        function assert(condition, message) {
+            if (!condition) throw new Error(message);
+        }
+
+        function runAllTests() {
+            resultsDiv.innerHTML = '';
+            testsPassed = 0;
+            testsFailed = 0;
+
+            // Test 1
+            try {
+                assert(typeof LEVELS !== 'undefined', 'LEVELS no está definida');
+                assert(Array.isArray(LEVELS), 'LEVELS no es un array');
+                assert(LEVELS.length === 5, `LEVELS debe tener 5 niveles`);
+                logTest('LEVELS constant está definida correctamente', true);
+            } catch (e) {
+                logTest('LEVELS constant', false, e.message);
+            }
+
+            // Test 2
+            try {
+                LEVELS.forEach((level, index) => {
+                    assert(level.number === index + 1, `Nivel ${index} number incorrecto`);
+                    assert(typeof level.name === 'string', `Nivel ${index} sin name`);
+                    assert(Array.isArray(level.blockPattern), `Nivel ${index} sin blockPattern`);
+                    assert(typeof level.ballSpeedMultiplier === 'number', `Nivel ${index} sin ballSpeedMultiplier`);
+                });
+                logTest('Estructura de niveles correcta', true);
+            } catch (e) {
+                logTest('Estructura de niveles', false, e.message);
+            }
+
+            // Test 3
+            try {
+                const expectedMultipliers = [1.0, 1.1, 1.21, 1.331, 1.4641];
+                LEVELS.forEach((level, index) => {
+                    assert(
+                        Math.abs(level.ballSpeedMultiplier - expectedMultipliers[index]) < 0.0001,
+                        `Multiplicador nivel ${index + 1} incorrecto`
+                    );
+                });
+                logTest('Multiplicadores de velocidad correctos', true);
+            } catch (e) {
+                logTest('Multiplicadores de velocidad', false, e.message);
+            }
+
+            // Test 4
+            try {
+                const menu = document.getElementById('levelSelectMenu');
+                assert(menu !== null, 'levelSelectMenu no existe');
+                const buttons = document.querySelectorAll('.level-button');
+                assert(buttons.length === 5, `Debe haber 5 botones`);
+                logTest('Menú de selección de nivel existe', true);
+            } catch (e) {
+                logTest('Menú de selección', false, e.message);
+            }
+
+            // Test 5
+            try {
+                assert(document.getElementById('level') !== null, 'Falta level en HUD');
+                assert(document.getElementById('score') !== null, 'Falta score en HUD');
+                assert(document.getElementById('lives') !== null, 'Falta lives en HUD');
+                logTest('HUD contiene todos los elementos', true);
+            } catch (e) {
+                logTest('HUD', false, e.message);
+            }
+
+            // Test 6
+            try {
+                assert(document.getElementById('pauseMenu') !== null, 'pauseMenu no existe');
+                assert(document.getElementById('changeLevelButton') !== null, 'changeLevelButton no existe');
+                logTest('Menú de pausa tiene "Cambiar Nivel"', true);
+            } catch (e) {
+                logTest('Menú de pausa', false, e.message);
+            }
+
+            // Test 7
+            try {
+                assert(document.getElementById('levelCompleteMenu') !== null, 'levelCompleteMenu no existe');
+                assert(document.getElementById('continueButton') !== null, 'continueButton no existe');
+                logTest('Menú de nivel completado existe', true);
+            } catch (e) {
+                logTest('Menú nivel completado', false, e.message);
+            }
+
+            // Test 8
+            try {
+                assert(document.getElementById('gameCompleteMenu') !== null, 'gameCompleteMenu no existe');
+                assert(document.getElementById('menuButton') !== null, 'menuButton no existe');
+                logTest('Menú de juego completado existe', true);
+            } catch (e) {
+                logTest('Menú juego completado', false, e.message);
+            }
+
+            // Test 9
+            try {
+                initializeLevel(1);
+                assert(gameState.currentLevel === 1, 'currentLevel no se estableció');
+                assert(gameState.score === 0, 'score no se resetó');
+                assert(gameState.lives === 3, 'lives no se resetó');
+                assert(gameState.blocks.length > 0, 'blocks no se inicializaron');
+                assert(Math.abs(gameState.ball.vx - (-4)) < 0.0001, 'Velocidad incorrecta');
+                logTest('initializeLevel() funciona correctamente', true);
+            } catch (e) {
+                logTest('initializeLevel()', false, e.message);
+            }
+
+            // Test 10
+            try {
+                const velocidades = [];
+                for (let level = 1; level <= 5; level++) {
+                    initializeLevel(level);
+                    velocidades.push(Math.abs(gameState.ball.vx));
+                }
+                for (let i = 1; i < velocidades.length; i++) {
+                    assert(velocidades[i] > velocidades[i - 1], `Nivel ${i + 1} no es más rápido`);
+                }
+                logTest('Velocidad progresiva correcta', true);
+            } catch (e) {
+                logTest('Velocidad progresiva', false, e.message);
+            }
+
+            // Test 11
+            try {
+                const patterns = [
+                    { name: 'Grilla', minBlocks: 25 },
+                    { name: 'Pirámide', minBlocks: 15 },
+                    { name: 'Diamante', minBlocks: 15 },
+                    { name: 'Líneas Alternadas', minBlocks: 20 },
+                    { name: 'Caótico', minBlocks: 20 }
+                ];
+                patterns.forEach((p, index) => {
+                    initializeLevel(index + 1);
+                    assert(gameState.blocks.length >= p.minBlocks, `Nivel ${index + 1} sin bloques suficientes`);
+                });
+                logTest('Patrones de bloques se cargan correctamente', true);
+            } catch (e) {
+                logTest('Patrones de bloques', false, e.message);
+            }
+
+            // Test 12
+            try {
+                const requiredFields = ['currentLevel', 'levelScore', 'levelLives', 'score', 'lives', 'ball', 'paddle', 'blocks', 'mode'];
+                requiredFields.forEach(field => {
+                    assert(field in gameState, `gameState falta: ${field}`);
+                });
+                logTest('gameState tiene todos los campos requeridos', true);
+            } catch (e) {
+                logTest('gameState campos', false, e.message);
+            }
+
+            // Resumen
+            const summary = document.createElement('div');
+            summary.className = 'summary';
+            summary.innerHTML = `
+                <div><strong>Pruebas Completadas: ${testsPassed + testsFailed}</strong></div>
+                <div style="color: #00ff00; margin-top: 10px;">✓ Pasadas: ${testsPassed}</div>
+                <div style="color: #ff4444;">✗ Fallidas: ${testsFailed}</div>
+                ${testsFailed === 0 ? '<div style="color: #00ff00; margin-top: 20px; font-size: 20px;"><strong>✓ TODAS LAS PRUEBAS PASARON</strong></div>' : ''}
+            `;
+            resultsDiv.appendChild(summary);
+        }
+
+        function testInteractive() {
+            resultsDiv.innerHTML = '';
+            const div = document.createElement('div');
+            div.className = 'test-container';
+            div.innerHTML = `
+                <h2>Prueba Interactiva - Nivel 1</h2>
+                <p>Estado actual del juego:</p>
+                <ul>
+                    <li>Nivel: <strong id="test-level">-</strong></li>
+                    <li>Bloques: <strong id="test-blocks">-</strong></li>
+                    <li>Velocidad X: <strong id="test-vx">-</strong></li>
+                    <li>Velocidad Y: <strong id="test-vy">-</strong></li>
+                    <li>Puntuación: <strong id="test-score">-</strong></li>
+                    <li>Vidas: <strong id="test-lives">-</strong></li>
+                </ul>
+            `;
+            resultsDiv.appendChild(div);
+
+            // Simular carga de spritesheet y luego inicializar nivel
+            loadSpritesheet(() => {
+                initializeLevel(1);
+
+                document.getElementById('test-level').textContent = gameState.currentLevel;
+                document.getElementById('test-blocks').textContent = gameState.blocks.length;
+                document.getElementById('test-vx').textContent = gameState.ball.vx.toFixed(2);
+                document.getElementById('test-vy').textContent = gameState.ball.vy.toFixed(2);
+                document.getElementById('test-score').textContent = gameState.score;
+                document.getElementById('test-lives').textContent = gameState.lives;
+
+                const result = document.createElement('div');
+                result.className = 'test-container test-pass';
+                result.innerHTML = `
+                    <h3>✓ Nivel 1 inicializado correctamente</h3>
+                    <p>El juego está listo para jugar. Abre <strong>index.html</strong> para jugar el juego completo.</p>
+                `;
+                resultsDiv.appendChild(result);
+            });
+        }
+
+        // Auto-run cuando carga la página
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 500);
+        });
+    </script>
+</body>
+</html>

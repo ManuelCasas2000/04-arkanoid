@@ -5,19 +5,33 @@ const ctx = canvas.getContext('2d');
 const playButton = document.getElementById('playButton');
 const retryButton = document.getElementById('retryButton');
 const startMenu = document.getElementById('startMenu');
+const levelSelectMenu = document.getElementById('levelSelectMenu');
+const levelButtons = document.querySelectorAll('.level-button');
 const pauseMenu = document.getElementById('pauseMenu');
+const changeLevelButton = document.getElementById('changeLevelButton');
 const retryMenu = document.getElementById('retryMenu');
+const levelCompleteMenu = document.getElementById('levelCompleteMenu');
+const levelCompleteTitle = document.getElementById('levelCompleteTitle');
+const levelCompleteScore = document.getElementById('levelCompleteScore');
+const continueButton = document.getElementById('continueButton');
+const gameCompleteMenu = document.getElementById('gameCompleteMenu');
+const gameCompleteScore = document.getElementById('gameCompleteScore');
+const menuButton = document.getElementById('menuButton');
 const hud = document.getElementById('hud');
 const escHint = document.getElementById('escHint');
+const levelDisplay = document.getElementById('level');
 const scoreDisplay = document.getElementById('score');
 const livesDisplay = document.getElementById('lives');
 const finalScoreDisplay = document.getElementById('finalScore');
 
 // Game state
 let gameState = {
-    mode: 'menu', // 'menu', 'playing', 'paused', 'waiting_retry'
+    mode: 'menu', // 'menu', 'playing', 'paused', 'waiting_retry', 'level-select', 'level-complete', 'game-complete'
     score: 0,
     lives: 3,
+    currentLevel: 1,
+    levelScore: 0,
+    levelLives: 3,
     ball: {
         x: 400,
         y: 550,
@@ -40,13 +54,74 @@ let gameState = {
 let keysPressed = {};
 let soundEnabled = true;
 
+// Level definitions
+const LEVELS = [
+  {
+    number: 1,
+    name: "Grilla",
+    blockPattern: [
+      ['red', 'yellow', 'cyan', 'magenta', 'hotpink', 'green', 'red', 'yellow', 'cyan', 'magenta'],
+      ['yellow', 'cyan', 'magenta', 'hotpink', 'green', 'red', 'yellow', 'cyan', 'magenta', 'hotpink'],
+      ['cyan', 'magenta', 'hotpink', 'green', 'red', 'yellow', 'cyan', 'magenta', 'hotpink', 'green']
+    ],
+    ballSpeedMultiplier: 1.0
+  },
+  {
+    number: 2,
+    name: "Pirámide",
+    blockPattern: [
+      [null, null, null, null, 'red', 'red', null, null, null, null],
+      [null, null, null, 'yellow', 'yellow', 'yellow', 'yellow', null, null, null],
+      [null, null, 'cyan', 'cyan', 'cyan', 'cyan', 'cyan', 'cyan', null, null],
+      [null, 'magenta', 'magenta', 'magenta', 'magenta', 'magenta', 'magenta', 'magenta', 'magenta', null],
+      ['hotpink', 'hotpink', 'hotpink', 'hotpink', 'hotpink', 'hotpink', 'hotpink', 'hotpink', 'hotpink', 'hotpink']
+    ],
+    ballSpeedMultiplier: 1.1
+  },
+  {
+    number: 3,
+    name: "Diamante",
+    blockPattern: [
+      [null, null, null, null, 'red', 'red', null, null, null, null],
+      [null, null, null, 'yellow', 'yellow', 'yellow', 'yellow', null, null, null],
+      [null, null, 'cyan', 'cyan', 'cyan', 'cyan', 'cyan', 'cyan', null, null],
+      [null, null, null, 'magenta', 'magenta', 'magenta', 'magenta', null, null, null],
+      [null, null, null, null, 'green', 'green', null, null, null, null]
+    ],
+    ballSpeedMultiplier: 1.21
+  },
+  {
+    number: 4,
+    name: "Líneas Alternadas",
+    blockPattern: [
+      ['red', 'red', null, null, 'red', 'red', null, null, 'red', 'red'],
+      [null, null, 'yellow', 'yellow', null, null, 'yellow', 'yellow', null, null],
+      ['cyan', 'cyan', null, null, 'cyan', 'cyan', null, null, 'cyan', 'cyan'],
+      [null, null, 'magenta', 'magenta', null, null, 'magenta', 'magenta', null, null],
+      ['green', 'green', null, null, 'green', 'green', null, null, 'green', 'green']
+    ],
+    ballSpeedMultiplier: 1.331
+  },
+  {
+    number: 5,
+    name: "Caótico",
+    blockPattern: [
+      ['red', 'yellow', 'red', 'yellow', 'red', 'yellow', 'red', 'yellow', 'red', 'yellow'],
+      ['cyan', null, 'cyan', null, 'cyan', null, 'cyan', null, 'cyan', null],
+      ['magenta', 'hotpink', 'magenta', 'hotpink', 'magenta', 'hotpink', 'magenta', 'hotpink', 'magenta', 'hotpink'],
+      ['green', null, 'green', null, 'green', null, 'green', null, 'green', null],
+      ['red', 'cyan', 'red', 'cyan', 'red', 'cyan', 'red', 'cyan', 'red', 'cyan']
+    ],
+    ballSpeedMultiplier: 1.4641
+  }
+];
+
 // Animation constants
 const ANIMATION_DURATION = 400; // milliseconds for block destruction animation (4 frames)
 
-// Initialize blocks with fixed pattern
-function initializeBlocks() {
+// Initialize blocks from pattern
+function initializeBlocksFromPattern(blockPattern) {
     gameState.blocks = [];
-    const colors = ['red', 'yellow', 'cyan', 'magenta', 'hotpink', 'green'];
     const blockWidth = 32;
     const blockHeight = 16;
     const blocksPerRow = 10;
@@ -56,27 +131,43 @@ function initializeBlocks() {
     const spacingX = blockWidth;
     const spacingY = 20;
 
-    for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 10; col++) {
-            const colorIndex = (row * 10 + col) % colors.length;
-            gameState.blocks.push({
-                x: startX + col * spacingX,
-                y: startY + row * spacingY,
-                color: colors[colorIndex],
-                width: blockWidth,
-                height: blockHeight,
-                broken: false,
-                animating: false,
-                animationStartTime: null
-            });
+    for (let row = 0; row < blockPattern.length; row++) {
+        for (let col = 0; col < blockPattern[row].length; col++) {
+            const color = blockPattern[row][col];
+            if (color !== null) {
+                gameState.blocks.push({
+                    x: startX + col * spacingX,
+                    y: startY + row * spacingY,
+                    color: color,
+                    width: blockWidth,
+                    height: blockHeight,
+                    broken: false,
+                    animating: false,
+                    animationStartTime: null
+                });
+            }
         }
     }
 }
 
-// Reset game state
-function resetGame() {
+// Initialize level
+function initializeLevel(levelNumber) {
+    const level = LEVELS[levelNumber - 1];
+    if (!level) {
+        console.error(`Level ${levelNumber} not found`);
+        return;
+    }
+
+    gameState.currentLevel = levelNumber;
+    gameState.levelScore = 0;
+    gameState.levelLives = 3;
     gameState.score = 0;
     gameState.lives = 3;
+
+    // Load blocks from level pattern
+    initializeBlocksFromPattern(level.blockPattern);
+
+    // Reset ball and paddle
     gameState.ball = {
         x: 400,
         y: 550,
@@ -91,14 +182,28 @@ function resetGame() {
         width: 162,
         height: 14
     };
+
+    // Apply ball speed multiplier
+    gameState.ball.vx *= level.ballSpeedMultiplier;
+    gameState.ball.vy *= level.ballSpeedMultiplier;
+}
+
+// Initialize blocks with default pattern (Level 1)
+function initializeBlocks() {
+    initializeBlocksFromPattern(LEVELS[0].blockPattern);
+}
+
+// Reset game state
+function resetGame() {
     gameState.mode = 'menu';
     soundEnabled = true;
-    initializeBlocks();
+    initializeLevel(1);
     updateHUD();
 }
 
 // Update HUD display
 function updateHUD() {
+    levelDisplay.textContent = gameState.currentLevel;
     scoreDisplay.textContent = gameState.score;
     livesDisplay.textContent = gameState.lives;
 }
@@ -127,8 +232,14 @@ function gameLoop() {
             gameState.mode = 'waiting_retry';
             showRetryMenu();
         }
-    } else if (gameState.mode === 'paused') {
-        // Render paused state
+
+        // Check level complete
+        if (gameState.blocks.length === 0) {
+            gameState.mode = 'level-complete';
+            showLevelCompleteMenu();
+        }
+    } else if (gameState.mode === 'paused' || gameState.mode === 'level-select' || gameState.mode === 'level-complete' || gameState.mode === 'game-complete') {
+        // Render paused/level-select/level-complete/game-complete state
         renderPaddle();
         renderBall();
         renderBlocks();
@@ -347,6 +458,16 @@ function playSound(soundName) {
 // UI Functions
 function showStartMenu() {
     startMenu.classList.remove('hidden');
+    levelSelectMenu.classList.add('hidden');
+    pauseMenu.classList.add('hidden');
+    retryMenu.classList.add('hidden');
+    hud.classList.add('hidden');
+    escHint.classList.add('hidden');
+}
+
+function showLevelSelectMenu() {
+    startMenu.classList.add('hidden');
+    levelSelectMenu.classList.remove('hidden');
     pauseMenu.classList.add('hidden');
     retryMenu.classList.add('hidden');
     hud.classList.add('hidden');
@@ -355,6 +476,7 @@ function showStartMenu() {
 
 function showPlayingUI() {
     startMenu.classList.add('hidden');
+    levelSelectMenu.classList.add('hidden');
     pauseMenu.classList.add('hidden');
     retryMenu.classList.add('hidden');
     hud.classList.remove('hidden');
@@ -376,15 +498,66 @@ function showRetryMenu() {
     escHint.classList.add('hidden');
 }
 
+function showLevelCompleteMenu() {
+    levelCompleteTitle.textContent = `¡Nivel ${gameState.currentLevel} completado!`;
+    levelCompleteScore.textContent = `Puntuación: ${gameState.score}`;
+    levelCompleteMenu.classList.remove('hidden');
+    hud.classList.add('hidden');
+    escHint.classList.add('hidden');
+}
+
+function hideLevelCompleteMenu() {
+    levelCompleteMenu.classList.add('hidden');
+}
+
+function showGameCompleteMenu() {
+    gameCompleteScore.textContent = `Puntuación Total: ${gameState.score}`;
+    gameCompleteMenu.classList.remove('hidden');
+    hud.classList.add('hidden');
+    escHint.classList.add('hidden');
+}
+
 // Event listeners
 playButton.addEventListener('click', () => {
-    gameState.mode = 'playing';
-    showPlayingUI();
+    showLevelSelectMenu();
+});
+
+levelButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+        const levelNumber = parseInt(e.target.getAttribute('data-level'));
+        initializeLevel(levelNumber);
+        gameState.mode = 'playing';
+        showPlayingUI();
+    });
 });
 
 retryButton.addEventListener('click', () => {
     resetGame();
     showStartMenu();
+});
+
+continueButton.addEventListener('click', () => {
+    if (gameState.currentLevel < 5) {
+        initializeLevel(gameState.currentLevel + 1);
+        gameState.mode = 'playing';
+        hideLevelCompleteMenu();
+        showPlayingUI();
+    } else {
+        // Level 5 complete - show game complete menu
+        gameState.mode = 'game-complete';
+        showGameCompleteMenu();
+    }
+});
+
+menuButton.addEventListener('click', () => {
+    resetGame();
+    showStartMenu();
+});
+
+changeLevelButton.addEventListener('click', () => {
+    gameState.mode = 'level-select';
+    hidePauseMenu();
+    showLevelSelectMenu();
 });
 
 document.addEventListener('keydown', (e) => {

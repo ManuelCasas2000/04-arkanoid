@@ -1,5 +1,5 @@
 ---
-state: Draft
+state: Implemented
 date: 2026-07-08
 dependencies: 02-block-destruction-animation.md
 ---

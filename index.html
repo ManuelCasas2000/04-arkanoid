@@ -35,7 +35,7 @@
             height: 100%;
         }
 
-        #startMenu {
+        #startMenu, #levelSelectMenu {
             position: absolute;
             top: 0;
             left: 0;
@@ -49,15 +49,51 @@
             z-index: 100;
         }
 
-        #startMenu.hidden {
+        #startMenu.hidden, #levelSelectMenu.hidden {
             display: none;
         }
 
-        #startMenu h1 {
+        #startMenu h1, #levelSelectMenu h1 {
             color: #00d4ff;
             font-size: 48px;
             margin-bottom: 40px;
             text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+        }
+
+        #levelSelectMenu {
+            display: none;
+        }
+
+        #levelSelectMenu h2 {
+            color: #00d4ff;
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+        }
+
+        #levelButtons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .level-button {
+            padding: 20px 25px;
+            font-size: 20px;
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .level-button:hover {
+            background: #00ffff;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
         }
 
         #startMenu button,
@@ -113,6 +149,31 @@
             margin-bottom: 30px;
         }
 
+        #pauseButtons {
+            display: flex;
+            gap: 20px;
+            flex-direction: column;
+        }
+
+        #pauseButtons button {
+            padding: 12px 30px;
+            font-size: 18px;
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            min-width: 180px;
+        }
+
+        #pauseButtons button:hover {
+            background: #00ffff;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
+        }
+
         #retryMenu {
             position: absolute;
             top: 0;
@@ -142,6 +203,104 @@
             color: #ffffff;
             font-size: 24px;
             margin-bottom: 30px;
+        }
+
+        #levelCompleteMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 46, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #levelCompleteMenu.hidden {
+            display: none;
+        }
+
+        #levelCompleteMenu h2 {
+            color: #00ff00;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+
+        #levelCompleteMenu p {
+            color: #ffffff;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        #levelCompleteMenu button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        #levelCompleteMenu button:hover {
+            background: #00ffff;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
+        }
+
+        #gameCompleteMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 46, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #gameCompleteMenu.hidden {
+            display: none;
+        }
+
+        #gameCompleteMenu h2 {
+            color: #ffff00;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 255, 0, 0.8);
+        }
+
+        #gameCompleteMenu p {
+            color: #ffffff;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        #gameCompleteMenu button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        #gameCompleteMenu button:hover {
+            background: #00ffff;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
         }
 
         #hud {
@@ -191,9 +350,24 @@
             <button id="playButton">Jugar</button>
         </div>
 
+        <div id="levelSelectMenu" class="hidden">
+            <h2>Selecciona un Nivel</h2>
+            <div id="levelButtons">
+                <button class="level-button" data-level="1">Nivel 1</button>
+                <button class="level-button" data-level="2">Nivel 2</button>
+                <button class="level-button" data-level="3">Nivel 3</button>
+                <button class="level-button" data-level="4">Nivel 4</button>
+                <button class="level-button" data-level="5">Nivel 5</button>
+            </div>
+        </div>
+
         <div id="pauseMenu" class="hidden">
             <h2>PAUSA</h2>
             <p>Presiona ESC para reanudar</p>
+            <div id="pauseButtons">
+                <button id="resumeButton">Reanudar (ESC)</button>
+                <button id="changeLevelButton">Cambiar Nivel</button>
+            </div>
         </div>
 
         <div id="retryMenu" class="hidden">
@@ -202,7 +376,20 @@
             <button id="retryButton">Reintentar</button>
         </div>
 
+        <div id="levelCompleteMenu" class="hidden">
+            <h2 id="levelCompleteTitle">¡Nivel completado!</h2>
+            <p id="levelCompleteScore">Puntuación: 0</p>
+            <button id="continueButton">Continuar</button>
+        </div>
+
+        <div id="gameCompleteMenu" class="hidden">
+            <h2>¡JUEGO COMPLETADO!</h2>
+            <p id="gameCompleteScore">Puntuación Total: 0</p>
+            <button id="menuButton">Volver al Menú</button>
+        </div>
+
         <div id="hud">
+            <div class="hud-item">Nivel: <span id="level">1</span></div>
             <div class="hud-item">Puntuación: <span id="score">0</span></div>
             <div class="hud-item">Vidas: <span id="lives">3</span></div>
         </div>
